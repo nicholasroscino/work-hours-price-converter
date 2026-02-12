@@ -6,7 +6,9 @@ export class EbayParser implements IPriceParser {
   private processedElements: WeakSet<HTMLElement> = new WeakSet();
 
   getPriceElements(): HTMLElement[] {
-    const found = document.querySelectorAll(".s-item__price, .x-price-primary, .bc-item-detail-price, [data-testid='x-price-primary']");
+    const found = document.querySelectorAll(
+      ".s-item__price, .x-price-primary, .bc-item-detail-price, [data-testid='x-price-primary']",
+    );
     console.log("Found elements:", found);
 
     const elements: HTMLElement[] = [];
@@ -33,5 +35,7 @@ export class EbayParser implements IPriceParser {
     return extractPriceFromText(element.textContent || "");
   }
 
-  clearProcessedElements(): void { this.processedElements = new WeakSet(); }
+  clearProcessedElements(): void {
+    this.processedElements = new WeakSet();
+  }
 }

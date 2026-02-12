@@ -1,6 +1,6 @@
 export interface Renderer {
-    addWorkHoursElement(
-        element: HTMLElement,
-        hoursInfo: { hours: number; formatted: string },
-    ): void;
+  addWorkHoursElement(
+    element: HTMLElement,
+    hoursInfo: { hours: number; formatted: string },
+  ): void;
 }

@@ -1,14 +1,14 @@
-import {log} from "../../logger";
+import { log } from "../../logger";
 
-import {AmazonRenderer} from "./AmazonRenderer";
-import {EbayRenderer} from "./EbayRenderer";
-import {Renderer} from "./Renderer";
+import { AmazonRenderer } from "./AmazonRenderer";
+import { EbayRenderer } from "./EbayRenderer";
+import type { Renderer } from "./Renderer";
 
 const renderers: Map<string, Renderer> = new Map();
 
 const parserMap = new Map<string, new () => Renderer>([
-  [ "amazon", AmazonRenderer ],
-  [ "ebay", EbayRenderer ],
+  ["amazon", AmazonRenderer],
+  ["ebay", EbayRenderer],
 ]);
 
 /**
@@ -22,7 +22,7 @@ export function getRendererForHostName(hostname: string) {
     return renderers.get(hostname)!;
   }
 
-  let parserClass: (new () => Renderer)|null = null;
+  let parserClass: (new () => Renderer) | null = null;
   for (const [key, value] of parserMap) {
     if (hostname.includes(key)) {
       parserClass = value;
@@ -44,4 +44,6 @@ export function getRendererForHostName(hostname: string) {
  * Clears all cached parsers.
  * Useful when switching between different websites.
  */
-export function clearParsers() { renderers.clear(); }
+export function clearParsers() {
+  renderers.clear();
+}

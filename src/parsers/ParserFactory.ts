@@ -45,4 +45,6 @@ export function getParser(hostname: string) {
  * Clears all cached parsers.
  * Useful when switching between different websites.
  */
-export function clearParsers() { parsers.clear(); }
+export function clearParsers() {
+  parsers.clear();
+}

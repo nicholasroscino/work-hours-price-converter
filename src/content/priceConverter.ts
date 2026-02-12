@@ -1,20 +1,22 @@
-import {log} from "../logger";
-import type {IPriceParser} from "../parsers/IPriceParser";
-import {getParser} from "../parsers/ParserFactory";
-import {DEFAULT_USER_SETTINGS} from "../settings";
-import type {UserSettings} from "../types";
-import {calculateHourlyWage} from "../utils";
+import { log } from "../logger";
+import type { IPriceParser } from "../parsers/IPriceParser";
+import { getParser } from "../parsers/ParserFactory";
+import { DEFAULT_USER_SETTINGS } from "../settings";
+import type { UserSettings } from "../types";
+import { calculateHourlyWage } from "../utils";
 
-import {Renderer} from "./renderers/Renderer";
-import {getRendererForHostName} from "./renderers/RendererFactory";
+import type { Renderer } from "./renderers/Renderer";
+import { getRendererForHostName } from "./renderers/RendererFactory";
 
 export class PriceConverter {
-  private parser: IPriceParser|null|undefined = null;
-  private renderer: Renderer|null|undefined = null;
-  private settings: UserSettings|null = null;
-  private hourlyWage: number|null = null;
+  private parser: IPriceParser | null | undefined = null;
+  private renderer: Renderer | null | undefined = null;
+  private settings: UserSettings | null = null;
+  private hourlyWage: number | null = null;
 
-  constructor() { this.initialize(); }
+  constructor() {
+    this.initialize();
+  }
 
   private initialize(): void {
     // Get the appropriate parser for this website
@@ -33,7 +35,7 @@ export class PriceConverter {
 
   private loadSettings(): void {
     // Request settings from background script
-    chrome.runtime.sendMessage({type : "GET_USER_SETTINGS"}, (response) => {
+    chrome.runtime.sendMessage({ type: "GET_USER_SETTINGS" }, (response) => {
       if (response) {
         this.settings = response;
         this.processPrices();
@@ -45,8 +47,12 @@ export class PriceConverter {
 
   private processPrices(): void {
     log("info", "Processing prices with settings:", this.settings);
-    if (!this.settings || !this.settings.enabled || !this.parser ||
-        !this.renderer) {
+    if (
+      !this.settings ||
+      !this.settings.enabled ||
+      !this.parser ||
+      !this.renderer
+    ) {
       return;
     }
     this.hourlyWage = calculateHourlyWage(this.settings)?.amount || 0.0;
@@ -64,17 +70,19 @@ export class PriceConverter {
     log("info", "Price processing completed");
   }
 
-  private convertPriceToWorkHours(price: number):
-      {hours: number; formatted : string;} {
+  private convertPriceToWorkHours(price: number): {
+    hours: number;
+    formatted: string;
+  } {
     if (!this.hourlyWage || this.hourlyWage <= 0)
-      return {hours : 0, formatted : "N/A"};
+      return { hours: 0, formatted: "N/A" };
 
     const workHours = price / this.hourlyWage;
     const formattedHours = this.formatWorkHours(workHours);
 
     return {
-      hours : workHours,
-      formatted : formattedHours,
+      hours: workHours,
+      formatted: formattedHours,
     };
   }
 
@@ -122,7 +130,9 @@ export class PriceConverter {
 
   private removeExistingWorkHours(): void {
     const existingElements = document.querySelectorAll(".work-hours");
-    existingElements.forEach((element) => { element.remove(); });
+    existingElements.forEach((element) => {
+      element.remove();
+    });
   }
 
   // Public method to disable/enable the extension
