@@ -1,15 +1,14 @@
-import { log } from "../logger";
-import { DEFAULT_TARGET_WEBSITES } from "../settings";
+import {log} from "../../logger";
 
-import { AmazonParser } from "./AmazonParser";
-import { EbayParser } from "./EbayParser";
-import type { IPriceParser } from "./IPriceParser";
+import {AmazonRenderer} from "./AmazonRenderer";
+import {EbayRenderer} from "./EbayRenderer";
+import {Renderer} from "./Renderer";
 
-const parsers: Map<string, IPriceParser> = new Map();
+const renderers: Map<string, Renderer> = new Map();
 
-const parserMap = new Map<string, new () => IPriceParser>([
-  ["amazon", AmazonParser],
-  ["ebay", EbayParser],
+const parserMap = new Map<string, new () => Renderer>([
+  [ "amazon", AmazonRenderer ],
+  [ "ebay", EbayRenderer ],
 ]);
 
 /**
@@ -17,13 +16,13 @@ const parserMap = new Map<string, new () => IPriceParser>([
  * @param hostname The current website's hostname.
  * @returns The appropriate price parser, or null if no parser is available.
  */
-export function getParser(hostname: string) {
+export function getRendererForHostName(hostname: string) {
   log("debug", "Getting parser for hostname:", hostname);
-  if (parsers.has(hostname)) {
-    return parsers.get(hostname)!;
+  if (renderers.has(hostname)) {
+    return renderers.get(hostname)!;
   }
 
-  let parserClass: (new () => IPriceParser) | null = null;
+  let parserClass: (new () => Renderer)|null = null;
   for (const [key, value] of parserMap) {
     if (hostname.includes(key)) {
       parserClass = value;
@@ -34,7 +33,7 @@ export function getParser(hostname: string) {
   // If a parser class was found, instantiate it and cache it.
   if (parserClass) {
     const parser = new parserClass();
-    parsers.set(hostname, parser);
+    renderers.set(hostname, parser);
     return parser;
   }
 
@@ -45,4 +44,4 @@ export function getParser(hostname: string) {
  * Clears all cached parsers.
  * Useful when switching between different websites.
  */
-export function clearParsers() { parsers.clear(); }
+export function clearParsers() { renderers.clear(); }

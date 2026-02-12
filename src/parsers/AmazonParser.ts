@@ -69,11 +69,7 @@ export class AmazonParser implements IPriceParser {
   }
 
   private isProcessedElement(element: HTMLElement): boolean {
-    // Check if this element has already been processed
-    if (this.processedElements.has(element)) {
-      return true;
-    }
-    return false;
+    return this.processedElements.has(element);
   }
 
   private findBestParentElement(priceElement: HTMLElement): HTMLElement | null {

@@ -1,23 +1,26 @@
-import { log } from "../logger";
-import type { IPriceParser } from "../parsers/IPriceParser";
-import { getParser } from "../parsers/ParserFactory";
-import { DEFAULT_USER_SETTINGS } from "../settings";
-import type { UserSettings } from "../types";
-import { calculateHourlyWage } from "../utils";
+import {log} from "../logger";
+import type {IPriceParser} from "../parsers/IPriceParser";
+import {getParser} from "../parsers/ParserFactory";
+import {DEFAULT_USER_SETTINGS} from "../settings";
+import type {UserSettings} from "../types";
+import {calculateHourlyWage} from "../utils";
+
+import {Renderer} from "./renderers/Renderer";
+import {getRendererForHostName} from "./renderers/RendererFactory";
 
 export class PriceConverter {
-  private parser: IPriceParser | null | undefined = null;
-  private settings: UserSettings | null = null;
-  private hourlyWage: number | null = null;
+  private parser: IPriceParser|null|undefined = null;
+  private renderer: Renderer|null|undefined = null;
+  private settings: UserSettings|null = null;
+  private hourlyWage: number|null = null;
 
-  constructor() {
-    this.initialize();
-  }
+  constructor() { this.initialize(); }
 
   private initialize(): void {
     // Get the appropriate parser for this website
     const hostname = window.location.hostname;
     this.parser = getParser(hostname);
+    this.renderer = getRendererForHostName(hostname);
 
     if (!this.parser) {
       log("info", "No parser available for this website:", hostname);
@@ -30,7 +33,7 @@ export class PriceConverter {
 
   private loadSettings(): void {
     // Request settings from background script
-    chrome.runtime.sendMessage({ type: "GET_USER_SETTINGS" }, (response) => {
+    chrome.runtime.sendMessage({type : "GET_USER_SETTINGS"}, (response) => {
       if (response) {
         this.settings = response;
         this.processPrices();
@@ -42,61 +45,37 @@ export class PriceConverter {
 
   private processPrices(): void {
     log("info", "Processing prices with settings:", this.settings);
-    if (!this.settings || !this.settings.enabled || !this.parser) {
+    if (!this.settings || !this.settings.enabled || !this.parser ||
+        !this.renderer) {
       return;
     }
-    const parser = this.parser;
     this.hourlyWage = calculateHourlyWage(this.settings)?.amount || 0.0;
     log("info", "Calculated hourly wage:", this.hourlyWage);
-    const priceElements = parser.getPriceElements();
+    const priceElements = this.parser.getPriceElements();
 
-    priceElements.forEach((element) => {
-      const price = parser.extractPrice(element);
+    for (const element of priceElements) {
+      const price = this.parser.extractPrice(element);
       if (price && price > 0) {
         const convertedPrice = this.convertPriceToWorkHours(price);
-        this.addWorkHoursElement(element, convertedPrice);
+        this.renderer.addWorkHoursElement(element, convertedPrice);
       }
-    });
+    }
+
     log("info", "Price processing completed");
   }
 
-  private convertPriceToWorkHours(price: number): {
-    hours: number;
-    formatted: string;
-  } {
+  private convertPriceToWorkHours(price: number):
+      {hours: number; formatted : string;} {
     if (!this.hourlyWage || this.hourlyWage <= 0)
-      return { hours: 0, formatted: "N/A" };
+      return {hours : 0, formatted : "N/A"};
 
     const workHours = price / this.hourlyWage;
     const formattedHours = this.formatWorkHours(workHours);
 
     return {
-      hours: workHours,
-      formatted: formattedHours,
+      hours : workHours,
+      formatted : formattedHours,
     };
-  }
-
-  private addWorkHoursElement(
-    element: HTMLElement,
-    hoursInfo: { hours: number; formatted: string },
-  ): void {
-    const container = document.createElement("span");
-    container.className = "work-hours";
-    container.setAttribute("data-work-hours", "true");
-
-    const text = document.createElement("span");
-    text.textContent = hoursInfo.formatted;
-
-    const tooltip = document.createElement("span");
-    tooltip.className = "work-hours-tooltip";
-    tooltip.textContent = `You need to work ${hoursInfo.formatted}`;
-
-    container.appendChild(text);
-    container.appendChild(tooltip);
-
-    if (element.parentElement) {
-      element.parentElement.appendChild(container);
-    }
   }
 
   private formatWorkHours(hours: number): string {
@@ -143,9 +122,7 @@ export class PriceConverter {
 
   private removeExistingWorkHours(): void {
     const existingElements = document.querySelectorAll(".work-hours");
-    existingElements.forEach((element) => {
-      element.remove();
-    });
+    existingElements.forEach((element) => { element.remove(); });
   }
 
   // Public method to disable/enable the extension
