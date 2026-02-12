@@ -20,7 +20,7 @@ This Chrome extension helps you shop smarter by showing the "real" cost of produ
 
 ## Supported E-commerce Sites
 - Amazon
-- eBay (Coming soon)
+- eBay
 
 ---
 
@@ -72,3 +72,7 @@ This Chrome extension helps you shop smarter by showing the "real" cost of produ
 ## Contributing
 
 Please read the [CONTRIBUTING.md](./CONTRIBUTING.md) file for details on how to contribute to this project.
+
+## Known Issues
+
+- Ebay product page price works only for the current product but not on all the listings across the page.
